@@ -1,0 +1,39 @@
+#compiled source#
+#################
+*.com
+*.class
+*.dll
+*.exe
+*.o
+*.so
+*.pyc
+*.pyo
+
+# Packages #
+############
+*.7z
+*.dmg
+*.gz
+*.iso
+*.jar
+*.tar
+*.zip
+
+# Logs and Databases#
+####################
+*.log
+*.sql
+*.sqlite
+
+#OS generated files#
+####################
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.trashes
+ehthumbs.db
+
+#build folder#
+#############
+build/
