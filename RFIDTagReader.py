@@ -100,27 +100,24 @@ class RFIDTagReader:
 
 
     def checkSum(self, tag, checkSum):
-    """
+        """
 	Sequentially XOR-ing 2 byte chunks of the 10 byte tag value will give the 2-byte check sum
 
 	:param tag: the 10 bytes of tag value
 	:param checksum: the two bytes of checksum value
 	:returns: True if check sum calculated correctly, else False
-    """
+        """
         checkedVal = 0
-        try:
-            for i in range (0,5):
-                checkedVal = checkedVal ^ int(tag [(2 * i) : (2 * (i + 1))], 16)
-            if checkedVal == int(checkSum, 16):
-                return True
-            else:
-                return False
-        except Exception as e:
-            raise e ("checksum error")
+        for i in range (0,5):
+             checkedVal = checkedVal ^ int(tag [(2 * i) : (2 * (i + 1))], 16)
+        if checkedVal == int(checkSum, 16):
+            return True
+        else:
+            return False
 
 
+    
     def __del__(self):
         if self.serialPort is not None:
             self.serialPort.close()
-
-    
+            

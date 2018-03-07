@@ -29,9 +29,10 @@ try:
 except Exception as e:
     raise e ("Error making RFIDTagReader")
 i =0
+print ('Waiting for a tag....')
 while i < nReads:
     tag = tagReader.readTag ()
-    print (tag)
+    print ('Read a Tag', tag)
     i += 1
 print ('Read ' + str (nReads) + ' tags')
 
