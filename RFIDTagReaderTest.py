@@ -26,13 +26,18 @@ nReads =5
 
 try:
     tagReader = RFIDTagReader (RFID_serialPort, RFID_doCheckSum, timeOutSecs = RFID_timeout, kind=RFID_kind)
-except Exception as e:
-    raise e ("Error making RFIDTagReader")
-i =0
-print ('Waiting for a tag....')
-while i < nReads:
-    tag = tagReader.readTag ()
-    print ('Read a Tag', tag)
-    i += 1
-print ('Read ' + str (nReads) + ' tags')
+    i =0
+    while i < nReads:
+        try:
+            print ('Waiting for a tag....')
+            tag = tagReader.readTag ()
+            print ('Read a Tag', tag)
+            i += 1
+        except Exception as e:
+            print (str(e))
+            continue
+    print ('Read ' + str (nReads) + ' tags')
+    tagReader.__del__()
+except serial.serialutil.SerialException:
+    print ('quitting...')
 

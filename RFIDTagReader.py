@@ -75,7 +75,7 @@ class RFIDTagReader:
         if (tag == b''): #if there is a timeout with no data, return 0
             return 0
         elif (tag == b'\x02'): # if we read code for start of tag, read rest of tag with short timeout
-            self.serialPort.timeout = 0.0125
+            self.serialPort.timeout = 0.05
             tag=self.serialPort.read(size=self.dataSize -1)
         else: # bad data. flush input buffer
             self.serialPort.flushInput()
@@ -120,4 +120,38 @@ class RFIDTagReader:
     def __del__(self):
         if self.serialPort is not None:
             self.serialPort.close()
-            
+
+
+if __name__ == '__main__':
+    """
+    Change serialPort to wherever your tagreader is
+    and kind to 'ID' for ID-L3,12,20 etc. or RDM for RDM630 etc.
+    """
+    RFID_serialPort = '/dev/ttyUSB0'
+    #RFID_serialPort = '/dev/serial0'
+    RFID_kind = 'ID'
+    """
+    Setting to timeout to none means we don't return till we have a tag.
+    If a timeout is set and no tag is found, 0 is returned.
+    """
+    RFID_timeout = None
+    RFID_doCheckSum = True
+    nReads =5
+
+    try:
+        tagReader = RFIDTagReader (RFID_serialPort, RFID_doCheckSum, timeOutSecs = RFID_timeout, kind=RFID_kind)
+        i =0
+        while i < nReads:
+            try:
+                print ('Waiting for a tag....')
+                tag = tagReader.readTag ()
+                print ('Read a Tag', tag)
+                i += 1
+            except Exception as e:
+                print (str(e))
+                continue
+        print ('Read ' + str (nReads) + ' tags')
+        tagReader.__del__()
+    except serial.serialutil.SerialException:
+        print ('quitting...')
+
