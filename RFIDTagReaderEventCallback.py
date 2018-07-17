@@ -16,7 +16,8 @@ from time import sleep
 """
 #Serial Port and Tag-In-Range Pin (tirPin) must be modified to match your setup
 """
-serialPort = '/dev/serial0'
+serialPort = '/dev/ttyUSB1'
+#serialPort = '/dev/serial0'
 tirPin=21
 
 """
