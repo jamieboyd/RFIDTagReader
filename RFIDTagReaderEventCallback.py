@@ -6,7 +6,7 @@ pin on the Innovations Design tag readers (ID-L3, ID-L12, ID-L20).
 This is the general idea used in AutoMouseWeight Program
 
 Last Modified:
-2018/03/07 by Jamie Boyd - added some comments
+2018/03/07 by Jamie Boyd - added some comments and a quit on ctrl-C
 """
 
 from RFIDTagReader import RFIDTagReader
@@ -16,7 +16,8 @@ from time import sleep
 """
 #Serial Port and Tag-In-Range Pin (tirPin) must be modified to match your setup
 """
-serialPort = '/dev/serial0'
+serialPort = '/dev/ttyUSB1'
+#serialPort = '/dev/serial0'
 tirPin=21
 
 """
@@ -53,21 +54,27 @@ def main():
     GPIO.setup (tirPin, GPIO.IN)
     GPIO.add_event_detect (tirPin, GPIO.BOTH)
     GPIO.add_event_callback (tirPin, tagReaderCallback)
+    print ("Waiting for tags....")
     while True:
-        """
-        Loop with a brief sleep, waiting for a tag to be read.
-        After reading the tag, it is printed. This is the point
-        where you might do something interesting
-        """
-        while tag==0:
-            sleep (0.02)
-        print ('Tag = ', tag)
-        """
-        Loop with a brief sleep, waiting for a tag to exit reading range
-        """
-        while tag != 0:
-            sleep (0.02)
-        print ('Tag went away')
+        try:
+            """
+            Loop with a brief sleep, waiting for a tag to be read.
+            After reading the tag, it is printed. This is the point
+            where you might do something interesting
+            """
+            while tag==0:
+                sleep (0.02)
+            print ('Tag = ', tag)
+            """
+            Loop with a brief sleep, waiting for a tag to exit reading range
+            """
+            while tag != 0:
+                sleep (0.02)
+            print ('Tag went away')
+        except KeyboardInterrupt:
+            GPIO.cleanup()
+            print ("Quitting")
+            break
         
 
 if __name__ == '__main__':

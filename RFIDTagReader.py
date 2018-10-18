@@ -3,8 +3,6 @@
 
 import serial
 
-
-
 class RFIDTagReader:
     """
     Class to read values from an ID-Innovations RFID tag reader, such as ID-20LA
@@ -133,6 +131,7 @@ class RFIDTagReader:
         GPIO.add_event_callback (tag_in_range_pin, tagReaderCallback)
 
 
+    
     def __del__(self):
         """
         close the serial port when we are done with it
