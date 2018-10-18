@@ -3,6 +3,8 @@
 
 import serial
 
+
+
 class RFIDTagReader:
     """
     Class to read values from an ID-Innovations RFID tag reader, such as ID-20LA
@@ -100,13 +102,13 @@ class RFIDTagReader:
 
 
     def checkSum(self, tag, checkSum):
-    """
+        """
 	Sequentially XOR-ing 2 byte chunks of the 10 byte tag value will give the 2-byte check sum
 
 	:param tag: the 10 bytes of tag value
 	:param checksum: the two bytes of checksum value
 	:returns: True if check sum calculated correctly, else False
-    """
+        """
         checkedVal = 0
         try:
             for i in range (0,5):
@@ -118,9 +120,43 @@ class RFIDTagReader:
         except Exception as e:
             raise e ("checksum error")
 
+    def installCallBack (self, tag_in_range_pin):
+        """
+        Installs a threaded call back for the tag reader,using global object tagReader
+        the call back sets global variable RFIDtag when tag-in-range pin toggles
+        """
+        global tagReader
+        tagReader = self
+        import RPi.GPIO as GPIO
+        GPIO.setup (tag_in_range_pin, GPIO.IN)
+        GPIO.add_event_detect (tag_in_range_pin, GPIO.BOTH)
+        GPIO.add_event_callback (tag_in_range_pin, tagReaderCallback)
+
 
     def __del__(self):
+        """
+        close the serial port when we are done with it
+        """
         if self.serialPort is not None:
             self.serialPort.close()
+
+
+"""
+Threaded call back function on Tag-In-Range pin
+Updates RFIDtag global variable whenever Tag-In-Range pin toggles
+Setting tag to 0 means no tag is presently in range of the reader
+"""
+RFIDtag = 0
+tagReader = None
+def tagReaderCallback (channel):
+    global RFIDtag # the global indicates that it is the same variable declared above and also used by main loop
+    global tagReader
+    if GPIO.input (channel) == GPIO.HIGH: # tag just entered
+        try:
+            RFIDtag = tagReader.readTag ()
+        except Exception as e:
+            RFIDtag = 0
+    else:  # tag just left
+        tag = 0
 
     

@@ -14,7 +14,7 @@ from RFIDTagReader import RFIDTagReader
 Change serialPort to wherever your tagreader is
 and kind to 'ID' for ID-L3,12,20 etc. or RDM for RDM630 etc.
 """
-RFID_serialPort = '/dev/serial0'
+RFID_serialPort = '/dev/cu.usbserial-AL00ES9A'
 RFID_kind = 'ID'
 """
 Setting to timeout to none means we don't return till we have a tag.
@@ -30,8 +30,12 @@ except Exception as e:
     raise e ("Error making RFIDTagReader")
 i =0
 while i < nReads:
-    tag = tagReader.readTag ()
-    print (tag)
-    i += 1
+    try:
+        tag = tagReader.readTag ()
+        print (tag)
+        i += 1
+    except ValueError as e:
+        print (str (e))
+        #tagReader.clearBuffer()
 print ('Read ' + str (nReads) + ' tags')
 
