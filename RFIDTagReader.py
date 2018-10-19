@@ -1,22 +1,29 @@
 #! /usr/bin/python
 #-*-coding: utf-8 -*-
 
+"""
+ Imports: serial is needed for serial port communication with all RFID readers on all platforms.
+ Install serial with pip if it is missing. RPi.GPIO is used only on the Raspberry Pi, and only
+ when a callback function is installed on the Tag in-Range Pin that is only on the ID tag readers
+ Otherwise, you can delete the import of RPi.GPIO
+"""
 import serial
+import RPi.GPIO as GPIO
 
-class RFIDTagReader:
+class TagReader:
     """
     Class to read values from an ID-Innovations RFID tag reader, such as ID-20LA
     or an RDM tag reader, like the 630. Only differece for the two tag reader types is
     that the ID readers return 2 more termination characters than the RDM reader.
     ID - RFID Tag is 16 characters: STX(02h) DATA (10 ASCII) CHECK SUM (2 ASCII) CR LF ETX(03h)
     RDM - RFID Tag is 14 characters: STX(02h) DATA (10 ASCII) CHECK SUM (2 ASCII) ETX(03h)
-    Other differences that do not affect this code but do change how you might use it are: 
+    Other important differences : 
     1) the ID readers have a Tag-In-Range pin that goes from low to high when a tag
     comes into range, and stays high till the tag leaves. This allows
     use of an interrput function on a GPIO event to read the tag. The RDM readers do
     not have a Tag-In-Range pin, although they do a tag-read pin, which gives a brief
     pulse when a tag is read, so an interrupt can still be used to read a tag, but not to
-    tell when a tag has left the tag reader range.
+    tell when a tag has left the tag reader range. 
     2) The ID readers report the tag only once, when the tag first enters the reading range.
     The RDM readers report the tag value repeatedly as long as the tag is in range, with a
     frequency somewhere between 1 and 2 Hz.
@@ -32,8 +39,10 @@ class RFIDTagReader:
         """
 	# set data size based on kind paramater, for extra termination characters for ID tag readers
         if kind == 'RDM':
+            self.kind = 'RDM'
             self.dataSize=14
         elif kind == 'ID':
+            self.kind = 'ID'
             self.dataSize = 16
 	# set field for time out seconds for reading serial port, None means no time out 
         self.timeOutSecs = timeOutSecs
@@ -117,18 +126,21 @@ class RFIDTagReader:
                 return False
         except Exception as e:
             raise e ("checksum error")
+        
 
     def installCallBack (self, tag_in_range_pin):
         """
-        Installs a threaded call back for the tag reader,using global object tagReader
-        the call back sets global variable RFIDtag when tag-in-range pin toggles
+        Installs a threaded call back for the tag reader, using global object globalReader
+        the call back sets global variable globalTag when tag-in-range pin toggles, either
+        to the new tag value, if a tag just entered, or to 0 if a tag left
         """
-        global tagReader
-        tagReader = self
-        import RPi.GPIO as GPIO
+        global globalReader
+        globalReader = self
+        GPIO.setmode (GPIO.BCM)
         GPIO.setup (tag_in_range_pin, GPIO.IN)
         GPIO.add_event_detect (tag_in_range_pin, GPIO.BOTH)
-        GPIO.add_event_callback (tag_in_range_pin, tagReaderCallback)
+        if self.kind == 'ID':
+            GPIO.add_event_callback (tag_in_range_pin, tagReaderCallback)
 
 
     
@@ -140,22 +152,24 @@ class RFIDTagReader:
             self.serialPort.close()
 
 
+
 """
-Threaded call back function on Tag-In-Range pin
+global variables and call back function for use on Raspberry Pi with
+ID Tag Readers with Tag-In-Range pin
 Updates RFIDtag global variable whenever Tag-In-Range pin toggles
 Setting tag to 0 means no tag is presently in range of the reader
 """
-RFIDtag = 0
-tagReader = None
+globalTag = 0
+globalReader = None
 def tagReaderCallback (channel):
-    global RFIDtag # the global indicates that it is the same variable declared above and also used by main loop
-    global tagReader
+    global globalTag # the global indicates that it is the same variable declared above
     if GPIO.input (channel) == GPIO.HIGH: # tag just entered
         try:
-            RFIDtag = tagReader.readTag ()
+            globalTag = globalReader.readTag ()
         except Exception as e:
-            RFIDtag = 0
+            globalTag = 0
     else:  # tag just left
-        tag = 0
+        globalTag = 0
+        globalReader.clearBuffer()
 
     
