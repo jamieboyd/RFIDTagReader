@@ -52,7 +52,7 @@ class TagReader:
         self.serialPort = None
         try:
             self.serialPort = serial.Serial(str (serialPort), baudrate=9600, timeout=timeOutSecs)
-        except IOError as anError:
+        except Exception as anError:
             print ("Error initializing TagReader serial port.." + str (anError))
             raise anError
         if (self.serialPort.isOpen() == False):
@@ -84,7 +84,7 @@ class TagReader:
         if (tag == b''): #if there is a timeout with no data, return 0
             return 0
         elif (tag == b'\x02'): # if we read code for start of tag, read rest of tag with short timeout
-            self.serialPort.timeout = 0.0125
+            self.serialPort.timeout = 0.025
             tag=self.serialPort.read(size=self.dataSize -1)
         else: # bad data. flush input buffer
             self.serialPort.flushInput()
