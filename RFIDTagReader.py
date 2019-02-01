@@ -44,6 +44,7 @@ class TagReader:
         elif kind == 'ID':
             self.kind = 'ID'
             self.dataSize = 16
+            self.TIRpin = 0
 	# set field for time out seconds for reading serial port, None means no time out 
         self.timeOutSecs = timeOutSecs
 	# set boolean for doing checksum on each read
@@ -138,6 +139,7 @@ class TagReader:
         globalReader = self
         GPIO.setmode (GPIO.BCM)
         GPIO.setup (tag_in_range_pin, GPIO.IN)
+        self.TIRpin = tag_in_range_pin
         GPIO.add_event_detect (tag_in_range_pin, GPIO.BOTH)
         if self.kind == 'ID':
             GPIO.add_event_callback (tag_in_range_pin, tagReaderCallback)
@@ -150,7 +152,9 @@ class TagReader:
         """
         if self.serialPort is not None:
             self.serialPort.close()
-
+        if self.kind == 'ID' and self.TIRpin != 0:
+            GPIO.remove_event_detect (self.TIRpin)
+            GPIO.cleanup (self.TIRpin)
 
 
 """
