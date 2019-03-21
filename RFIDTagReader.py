@@ -10,6 +10,25 @@
 import serial
 import RPi.GPIO as GPIO
 
+"""
+global variables and call back function for use on Raspberry Pi with
+ID Tag Readers with Tag-In-Range pin
+Updates RFIDtag global variable whenever Tag-In-Range pin toggles
+Setting tag to 0 means no tag is presently in range of the reader
+"""
+globalTag = 0
+globalReader = None
+def tagReaderCallback (channel):
+    global globalTag # the global indicates that it is the same variable declared above
+    if GPIO.input (channel) == GPIO.HIGH: # tag just entered
+        try:
+            globalTag = globalReader.readTag ()
+        except Exception as e:
+            globalTag = 0
+    else:  # tag just left
+        globalTag = 0
+        globalReader.clearBuffer()
+
 class TagReader:
     """
     Class to read values from an ID-Innovations RFID tag reader, such as ID-20LA
@@ -129,11 +148,15 @@ class TagReader:
             raise e ("checksum error")
         
 
-    def installCallBack (self, tag_in_range_pin):
+    def installCallBack (self, tag_in_range_pin, callBackFunc = tagReaderCallback):
         """
-        Installs a threaded call back for the tag reader, using global object globalReader
+        Installs a threaded call back for the tag reader, the default callback function
+        being tagReaderCallback.  tagReaderCallback uses the global references globalReader for
+        the RFIDTagReader object, and globalTag for the variable updated with the RFID Tag number.
         the call back sets global variable globalTag when tag-in-range pin toggles, either
-        to the new tag value, if a tag just entered, or to 0 if a tag left
+        to the new tag value, if a tag just entered, or to 0 if a tag left.
+        You can install your own callback, as long as it uses RFIDTagReader.globalReader 
+        and only references RFIDTagReader.globalTag  and other global variables and objects.
         """
         global globalReader
         globalReader = self
@@ -142,9 +165,9 @@ class TagReader:
         self.TIRpin = tag_in_range_pin
         GPIO.add_event_detect (tag_in_range_pin, GPIO.BOTH)
         if self.kind == 'ID':
-            GPIO.add_event_callback (tag_in_range_pin, tagReaderCallback)
+            GPIO.add_event_callback (tag_in_range_pin, callBackFunc)
 
-
+            
     
     def __del__(self):
         """
@@ -157,23 +180,5 @@ class TagReader:
             GPIO.cleanup (self.TIRpin)
 
 
-"""
-global variables and call back function for use on Raspberry Pi with
-ID Tag Readers with Tag-In-Range pin
-Updates RFIDtag global variable whenever Tag-In-Range pin toggles
-Setting tag to 0 means no tag is presently in range of the reader
-"""
-globalTag = 0
-globalReader = None
-def tagReaderCallback (channel):
-    global globalTag # the global indicates that it is the same variable declared above
-    if GPIO.input (channel) == GPIO.HIGH: # tag just entered
-        try:
-            globalTag = globalReader.readTag ()
-        except Exception as e:
-            globalTag = 0
-    else:  # tag just left
-        globalTag = 0
-        globalReader.clearBuffer()
 
     
