@@ -14,6 +14,7 @@ import RFIDTagReader
 from time import sleep
 
 serialport = '/dev/ttyUSB0'
+#serialPort = '/dev/serial0'
 tag_in_range_pin = 16
 
 # global object we will reference from custom callback function and main 
