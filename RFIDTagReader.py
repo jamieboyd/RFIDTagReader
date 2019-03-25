@@ -158,15 +158,20 @@ class TagReader:
         You can install your own callback, as long as it uses RFIDTagReader.globalReader 
         and only references RFIDTagReader.globalTag  and other global variables and objects.
         """
-        global globalReader
-        globalReader = self
-        GPIO.setmode (GPIO.BCM)
-        GPIO.setup (tag_in_range_pin, GPIO.IN)
-        self.TIRpin = tag_in_range_pin
-        GPIO.add_event_detect (tag_in_range_pin, GPIO.BOTH)
         if self.kind == 'ID':
+            global globalReader
+            globalReader = self
+            GPIO.setmode (GPIO.BCM)
+            GPIO.setup (tag_in_range_pin, GPIO.IN)
+            self.TIRpin = tag_in_range_pin
+            GPIO.add_event_detect (tag_in_range_pin, GPIO.BOTH)
             GPIO.add_event_callback (tag_in_range_pin, callBackFunc)
 
+
+    def removeCallback (self):
+        GPIO.remove_event_detect (self.TIRpin)
+        GPIO.cleanup(self.TIRpin)
+        
             
     
     def __del__(self):

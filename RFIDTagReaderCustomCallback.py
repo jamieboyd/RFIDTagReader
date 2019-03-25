@@ -20,24 +20,7 @@ tag_in_range_pin = 16
 # global object we will reference from custom callback function and main 
 gObject = None
 
-def mytagReaderCallback (channel):
-    """
-    call back that is installed with RFIDTagReader installcallback function. Notice that it calls
-    tag reader function from the global object reference, RFIDTagReader.globalReader
-    the callback also uses a global object of myTestclass, made in main and referenced as gObject
-    """
-    global gObject # the global indicates that it is the same variable declared above
-    if GPIO.input (channel) == GPIO.HIGH: # tag just entered
-        try:
-            gObject.run (RFIDTagReader.globalReader.readTag ())
-        except Exception as e:
-            tag = 0
-    else:  # tag just left
-        RFIDTagReader.globalReader.clearBuffer()
-        gObject.run (0)
-
-
-        
+      
 class myTestClass (object):
     """
     myTestClass makes a dictionary of entrances and exits for each tag number as it is encountered
@@ -74,6 +57,23 @@ class myTestClass (object):
                 self.mDict.get (self.tag).update ({'exits' : exits})
                 print ('exits for {:d} = {:d}'.format(self.tag, exits))
             self.tag = 0
+            
+    @staticmethod
+    def tagReaderCallback (channel):
+        """
+        call back that is installed with RFIDTagReader installcallback function. Notice that it calls
+        tag reader function from the global object reference, RFIDTagReader.globalReader
+        the callback also uses a global object of myTestclass, made in main and referenced as gObject
+        """
+        global gObject # the global indicates that it is the same variable declared above
+        if GPIO.input (channel) == GPIO.HIGH: # tag just entered
+            try:
+                gObject.run (RFIDTagReader.globalReader.readTag ())
+            except Exception as e:
+                tag = 0
+        else:  # tag just left
+            RFIDTagReader.globalReader.clearBuffer()
+            gObject.run (0)
 
 
     def printResults(self):
@@ -99,7 +99,7 @@ def main ():
     the custom callback
     """
     tagReader = RFIDTagReader.TagReader(serialport, True, timeOutSecs = 0.05, kind='ID')
-    tagReader.installCallBack (tag_in_range_pin, callBackFunc = mytagReaderCallback)
+    tagReader.installCallBack (tag_in_range_pin, callBackFunc = myTestClass.tagReaderCallback)
     """
     main loop does nothing but sleep, callback does all the work. On ctrl-C, get the
     testClass object to print its results, and cleanup and exit
