@@ -21,7 +21,7 @@ from time import sleep
 def main ():
 
     tagReader = TagReader(serialPort, True, timeOutSecs = 0.05, kind='ID')
-    tagReader.installCallBack (tag_in_range_pin)
+    tagReader.installCallback (tag_in_range_pin)
     print ("Waiting for tags....")
     while True:
         try:
@@ -40,6 +40,7 @@ def main ():
                 sleep (0.02)
             print ('Tag went away')
         except KeyboardInterrupt:
+            RFIDTagReader.removeCallback ()
             GPIO.cleanup()
             print ("Quitting")
             break

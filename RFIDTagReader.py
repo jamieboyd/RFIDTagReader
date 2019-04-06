@@ -148,7 +148,7 @@ class TagReader:
             raise e ("checksum error")
         
 
-    def installCallBack (self, tag_in_range_pin, callBackFunc = tagReaderCallback):
+    def installCallback (self, tag_in_range_pin, callBackFunc = tagReaderCallback):
         """
         Installs a threaded call back for the tag reader, the default callback function
         being tagReaderCallback.  tagReaderCallback uses the global references globalReader for
@@ -183,7 +183,5 @@ class TagReader:
         if self.kind == 'ID' and self.TIRpin != 0:
             GPIO.remove_event_detect (self.TIRpin)
             GPIO.cleanup (self.TIRpin)
-
-
 
     
