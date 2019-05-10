@@ -151,7 +151,11 @@ class TagReader:
     def installCallback (self, tag_in_range_pin, callbackFunc = tagReaderCallback):
         """
         Installs a threaded call back for the tag reader, the default callback function
-        being tagReaderCallback.  tagReaderCallback uses the global references globalReader for
+        being tagReaderCallback.
+        :param tag_in_range_pin: the GPIO pin (in Broadcom numbering) connected to tag-in-range pin
+        :param callbackFunc: a function that runs when tag-in-rrange-pin toggles, installed with PIO.add_event_detect
+        
+        tagReaderCallback uses the global references globalReader for
         the RFIDTagReader object, and globalTag for the variable updated with the RFID Tag number.
         the call back sets global variable globalTag when tag-in-range pin toggles, either
         to the new tag value, if a tag just entered, or to 0 if a tag left.
@@ -169,6 +173,9 @@ class TagReader:
 
 
     def removeCallback (self):
+        """
+        Removes any calback function previously installed, and cleans up GPIO
+        """
         if self.TIRpin != 0:
             GPIO.remove_event_detect (self.TIRpin)
             GPIO.cleanup(self.TIRpin)

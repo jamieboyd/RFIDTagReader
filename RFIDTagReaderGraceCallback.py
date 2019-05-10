@@ -3,7 +3,6 @@
 """
 Simple program to illustrate using a threaded custom call back function with the Tag-In-Range
 pin on the Innovations Design tag readers (ID-L3, ID-L12, ID-L20).
-This is the general idea used in AutoMouseWeight Program
 
 Last Modified:
 2018/10/19 by Jamie Boyd - put callback and code to install callback in TagReader class
@@ -15,7 +14,6 @@ tag_in_range_pin=21
 
 
 gracePeriod = 1
-
 
 import RPi.GPIO as GPIO
 import RFIDTagReader
@@ -31,15 +29,17 @@ def graceThread (gracePeriod, tag):
     global globalTag
     global waitingForDelay
     endTime = time() + gracePeriod
-    while time () < endTime and waitingForDelay:
+    while time () < endTime and globalTag == tag and waitingForDelay:
         sleep (0.05)
-    if waitingForDelay:
+    if globalTag == tag and waitingForDelay: 
         globalTag = 0
+    waitingForDelay = False
 
 def tagReaderGraceCallback (channel):
     global globalReader
     global globalTag # the global indicates that it is the same variable declared above
     global waitingForDelay
+    #print ('global tag = {:d}'.format(globalReader.readTag ()))
     if GPIO.input (channel) == GPIO.HIGH: # tag just entered
         waitingForDelay = False
         try:
@@ -47,10 +47,11 @@ def tagReaderGraceCallback (channel):
         except Exception as e:
             globalTag = 0
     else:  # tag just left - or did it? wait for the grace period before declaring this tag gone
-        waitingForDelay = True
-        thisTag = globalTag
-        start_new_thread (graceThread, (gracePeriod, thisTag))
-        globalReader.clearBuffer()
+        if not waitingForDelay: # already waiting for delay, don't restart thread
+            waitingForDelay = True
+            thisTag = globalTag
+            start_new_thread (graceThread, (gracePeriod, thisTag))
+            #globalReader.clearBuffer()
 
 
 
@@ -70,8 +71,9 @@ def main ():
             """
             while globalTag == 0:
                 sleep (0.02)
-            print ('Tag = {:d}'.format(globalTag))
-            while globalTag != 0:
+            tag = globalTag
+            print ('Tag = {:d}'.format(tag))
+            while globalTag == tag:
                 sleep (0.02)
             print ('Tag went away, really.')
 
