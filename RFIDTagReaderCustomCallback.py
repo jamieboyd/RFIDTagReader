@@ -13,9 +13,9 @@ import RPi.GPIO as GPIO
 import RFIDTagReader
 from time import sleep
 
-serialport = '/dev/ttyUSB0'
-#serialPort = '/dev/serial0'
-tag_in_range_pin = 16
+#serialPort = '/dev/ttyUSB0'
+serialPort = '/dev/serial0'
+tag_in_range_pin = 21 #16
 
 # global object we will reference from custom callback function and main 
 gObject = None
@@ -98,8 +98,8 @@ def main ():
     makes a global reference to tagReader, RFIDTagReader.globalReader, to use in
     the custom callback
     """
-    tagReader = RFIDTagReader.TagReader(serialport, True, timeOutSecs = 0.05, kind='ID')
-    tagReader.installCallBack (tag_in_range_pin, callBackFunc = myTestClass.tagReaderCallback)
+    tagReader = RFIDTagReader.TagReader(serialPort, True, timeOutSecs = 0.05, kind='ID')
+    tagReader.installCallback (tag_in_range_pin, callbackFunc = myTestClass.tagReaderCallback)
     """
     main loop does nothing but sleep, callback does all the work. On ctrl-C, get the
     testClass object to print its results, and cleanup and exit
@@ -111,7 +111,6 @@ def main ():
             sleep (0.1)
     except KeyboardInterrupt:
         myObj.printResults()
-        GPIO.cleanup()
         print ("Quitting")
         
 

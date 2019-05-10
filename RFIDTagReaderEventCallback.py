@@ -9,9 +9,9 @@ Last Modified:
 2018/10/19 by Jamie Boyd - put callback and code to install callback in TagReader class
 2018/03/07 by Jamie Boyd - added some comments and a quit on ctrl-C
 """
-#serialPort = '/dev/serial0'
-serialPort = '/dev/ttyUSB0'
-tag_in_range_pin=16#21
+serialPort = '/dev/serial0'
+#serialPort = '/dev/ttyUSB0'
+tag_in_range_pin=21
 
 import RPi.GPIO as GPIO
 import RFIDTagReader
@@ -40,7 +40,7 @@ def main ():
                 sleep (0.02)
             print ('Tag went away')
         except KeyboardInterrupt:
-            RFIDTagReader.removeCallback ()
+            del tagReader
             GPIO.cleanup()
             print ("Quitting")
             break
