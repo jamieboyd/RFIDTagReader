@@ -8,7 +8,6 @@
  Otherwise, you can delete the import of RPi.GPIO
 """
 import serial
-import RPi.GPIO as GPIO
 
 class TagReader:
     """
@@ -44,6 +43,7 @@ class TagReader:
         elif kind == 'ID':
             self.kind = 'ID'
             self.dataSize = 16
+        self.tirPin = 0
 	# set field for time out seconds for reading serial port, None means no time out 
         self.timeOutSecs = timeOutSecs
 	# set boolean for doing checksum on each read
@@ -134,12 +134,14 @@ class TagReader:
         the call back sets global variable globalTag when tag-in-range pin toggles, either
         to the new tag value, if a tag just entered, or to 0 if a tag left
         """
-        global globalReader
-        globalReader = self
-        GPIO.setmode (GPIO.BCM)
-        GPIO.setup (tag_in_range_pin, GPIO.IN)
-        GPIO.add_event_detect (tag_in_range_pin, GPIO.BOTH)
         if self.kind == 'ID':
+            self.tirPin = tag_in_range_pin
+            global globalReader
+            globalReader = self
+            import RPi.GPIO as GPIO
+            GPIO.setmode (GPIO.BCM)
+            GPIO.setup (tag_in_range_pin, GPIO.IN)
+            GPIO.add_event_detect (tag_in_range_pin, GPIO.BOTH)
             GPIO.add_event_callback (tag_in_range_pin, tagReaderCallback)
 
 
@@ -150,6 +152,10 @@ class TagReader:
         """
         if self.serialPort is not None:
             self.serialPort.close()
+        if self.kind == 'ID' and self.tirPin != 0:
+            import RPi.GPIO as GPIO
+            GPIO.remove_event_detect (self.tirPin)
+            GPIO.cleanup (self.tirPin)
 
 
 

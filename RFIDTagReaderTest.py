@@ -14,8 +14,8 @@ from RFIDTagReader import TagReader
 Change serialPort to wherever your tagreader is
 and kind to 'ID' for ID-L3,12,20 etc. or RDM for RDM630 etc.
 """
-RFID_serialPort = '/dev/ttyUSB0'
-#RFID_serialPort = '/dev/serial0'
+#RFID_serialPort = '/dev/ttyUSB0'
+RFID_serialPort = '/dev/serial0'
 #RFID_serialPort='/dev/cu.usbserial-AL00ES9A'
 RFID_kind = 'ID'
 """
