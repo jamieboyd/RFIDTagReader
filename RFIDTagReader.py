@@ -43,7 +43,7 @@ class TagReader:
         elif kind == 'ID':
             self.kind = 'ID'
             self.dataSize = 16
-        self.tirPin = 0
+            self.TIRpin = 0
 	# set field for time out seconds for reading serial port, None means no time out 
         self.timeOutSecs = timeOutSecs
 	# set boolean for doing checksum on each read
@@ -128,23 +128,41 @@ class TagReader:
             raise e ("checksum error")
         
 
-    def installCallBack (self, tag_in_range_pin):
+    def installCallback (self, tag_in_range_pin, callbackFunc = tagReaderCallback):
         """
-        Installs a threaded call back for the tag reader, using global object globalReader
+        Installs a threaded call back for the tag reader, the default callback function
+        being tagReaderCallback.
+        :param tag_in_range_pin: the GPIO pin (in Broadcom numbering) connected to tag-in-range pin
+        :param callbackFunc: a function that runs when tag-in-rrange-pin toggles, installed with PIO.add_event_detect
+        
+        tagReaderCallback uses the global references globalReader for
+        the RFIDTagReader object, and globalTag for the variable updated with the RFID Tag number.
         the call back sets global variable globalTag when tag-in-range pin toggles, either
-        to the new tag value, if a tag just entered, or to 0 if a tag left
+        to the new tag value, if a tag just entered, or to 0 if a tag left.
+        You can install your own callback, as long as it uses RFIDTagReader.globalReader 
+        and only references RFIDTagReader.globalTag  and other global variables and objects.
         """
         if self.kind == 'ID':
-            self.tirPin = tag_in_range_pin
             global globalReader
             globalReader = self
             import RPi.GPIO as GPIO
             GPIO.setmode (GPIO.BCM)
+            GPIO.setmode (GPIO.BCM)
             GPIO.setup (tag_in_range_pin, GPIO.IN)
+            self.TIRpin = tag_in_range_pin
             GPIO.add_event_detect (tag_in_range_pin, GPIO.BOTH)
-            GPIO.add_event_callback (tag_in_range_pin, tagReaderCallback)
+            GPIO.add_event_callback (tag_in_range_pin, callbackFunc)
 
 
+    def removeCallback (self):
+        """
+        Removes any calback function previously installed, and cleans up GPIO
+        """
+        if self.TIRpin != 0:
+            GPIO.remove_event_detect (self.TIRpin)
+            GPIO.cleanup(self.TIRpin)
+            self.TIRpin == 0
+            
     
     def __del__(self):
         """
