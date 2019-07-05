@@ -7,7 +7,30 @@
  when a callback function is installed on the Tag in-Range Pin that is only on the ID tag readers
  Otherwise, you can delete the import of RPi.GPIO
 """
+
 import serial
+
+
+"""
+global variables and call back function for use on Raspberry Pi with
+ID Tag Readers with Tag-In-Range pin
+Updates RFIDtag global variable whenever Tag-In-Range pin toggles
+Setting tag to 0 means no tag is presently in range of the reader
+"""
+globalTag = 0
+globalReader = None
+def tagReaderCallback (channel):
+    global globalTag # the global indicates that it is the same variable declared above
+    if GPIO.input (channel) == GPIO.HIGH: # tag just entered
+        try:
+            globalTag = globalReader.readTag ()
+        except Exception as e:
+            globalTag = 0
+    else:  # tag just left
+        globalTag = 0
+        globalReader.clearBuffer()
+
+
 
 class TagReader:
     """
@@ -170,30 +193,10 @@ class TagReader:
         """
         if self.serialPort is not None:
             self.serialPort.close()
-        if self.kind == 'ID' and self.tirPin != 0:
+        if self.kind == 'ID' and self.TIRpin != 0:
             import RPi.GPIO as GPIO
-            GPIO.remove_event_detect (self.tirPin)
-            GPIO.cleanup (self.tirPin)
+            GPIO.remove_event_detect (self.TIRpin)
+            GPIO.cleanup (self.TIRpin)
 
-
-
-"""
-global variables and call back function for use on Raspberry Pi with
-ID Tag Readers with Tag-In-Range pin
-Updates RFIDtag global variable whenever Tag-In-Range pin toggles
-Setting tag to 0 means no tag is presently in range of the reader
-"""
-globalTag = 0
-globalReader = None
-def tagReaderCallback (channel):
-    global globalTag # the global indicates that it is the same variable declared above
-    if GPIO.input (channel) == GPIO.HIGH: # tag just entered
-        try:
-            globalTag = globalReader.readTag ()
-        except Exception as e:
-            globalTag = 0
-    else:  # tag just left
-        globalTag = 0
-        globalReader.clearBuffer()
 
     
