@@ -3,7 +3,7 @@ Python class to read values from an ID-Innovations RFID tag reader, such as ID-2
 
 Imports:
 serial is needed for serial port communication with all RFID readers on all platforms. Install serial with pip if it is missing.
-RPi.GPIO is used only on the Raspberry Pi, and only when a callback function is installed on the Tag in-Range Pin that is only on the ID tag readers Otherwise, you can delete the import of RPi.GPIO
+RPi.GPIO is used only on the Raspberry Pi, and is only imported when a callback function is installed on the Tag in-Range Pin that is only on the ID tag readers Otherwise, RPi.GPIO is not imported
  
 RFIDTagReader.py 
 contains the class the defines the TagReader.
