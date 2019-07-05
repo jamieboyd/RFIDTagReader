@@ -3,9 +3,9 @@
 
 """
  Imports: serial is needed for serial port communication with all RFID readers on all platforms.
- Install serial with pip if it is missing. RPi.GPIO is used only on the Raspberry Pi, and only
- when a callback function is installed on the Tag in-Range Pin that is only on the ID tag readers
- Otherwise, you can delete the import of RPi.GPIO
+ Install serial with pip if it is missing. RPi.GPIO is used only on the Raspberry Pi, and is only
+ imported when a callback function is installed on the Tag in-Range Pin that is only on the ID tag readers
+ Otherwise, RPi.GPIO is not imported
 """
 
 import serial
@@ -17,6 +17,7 @@ ID Tag Readers with Tag-In-Range pin
 Updates RFIDtag global variable whenever Tag-In-Range pin toggles
 Setting tag to 0 means no tag is presently in range of the reader
 """
+GPIO = None
 globalTag = 0
 globalReader = None
 def tagReaderCallback (channel):
@@ -168,7 +169,8 @@ class TagReader:
         if self.kind == 'ID':
             global globalReader
             globalReader = self
-            import RPi.GPIO as GPIO
+            global GPIO
+            GPIO = __import__ ('RPi.GPIO', globals(), locals(),['GPIO'],0) 
             GPIO.setmode (GPIO.BCM)
             GPIO.setmode (GPIO.BCM)
             GPIO.setup (tag_in_range_pin, GPIO.IN)
@@ -194,7 +196,6 @@ class TagReader:
         if self.serialPort is not None:
             self.serialPort.close()
         if self.kind == 'ID' and self.TIRpin != 0:
-            import RPi.GPIO as GPIO
             GPIO.remove_event_detect (self.TIRpin)
             GPIO.cleanup (self.TIRpin)
 
